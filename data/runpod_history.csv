@@ -19,3 +19,13 @@ timestamp,source,gpu_name,gpu_id,vram_gb,community_price_hr,secure_price_hr,comm
 2026-03-11 03:25:36,runpod,L40,NVIDIA L40,48,0.69,0.99,,0.5,,,Unknown,10,8,True,True
 2026-03-11 03:25:36,runpod,L40S,NVIDIA L40S,48,0.79,0.86,0.4,0.26,,,Unknown,8,8,True,True
 2026-03-11 03:25:36,runpod,RTX_A6000,NVIDIA RTX A6000,48,0.33,0.49,0.25,0.33,,,Unknown,8,10,True,True
+2026-03-11 03:37:04,runpod,A100_PCIe,NVIDIA A100 80GB PCIe,80,1.19,1.39,0.6,0.82,,,Unknown,8,8,True,True
+2026-03-11 03:37:04,runpod,RTX_4090,NVIDIA GeForce RTX 4090,24,0.34,0.59,0.2,0.29,,,Unknown,8,8,True,True
+2026-03-11 03:37:04,runpod,H100_SXM,NVIDIA H100 80GB HBM3,80,2.69,2.69,1.5,1.75,,,Unknown,1,8,True,True
+2026-03-11 03:37:04,runpod,H100_NVL,NVIDIA H100 NVL,94,2.59,3.07,1.4,1.65,,,Unknown,10,8,True,True
+2026-03-11 03:37:04,runpod,H100_PCIe,NVIDIA H100 PCIe,80,1.99,2.39,1.35,1.25,,,Unknown,1,8,True,True
+2026-03-11 03:37:04,runpod,H200_SXM,NVIDIA H200,141,3.59,3.59,,2.29,,,Unknown,8,8,True,True
+2026-03-11 03:37:04,runpod,NVIDIA_H200_NVL,NVIDIA H200 NVL,143,0.5,3.39,,,,,Unknown,1,8,False,True
+2026-03-11 03:37:04,runpod,L40,NVIDIA L40,48,0.69,0.99,,0.5,,,Unknown,10,8,True,True
+2026-03-11 03:37:04,runpod,L40S,NVIDIA L40S,48,0.79,0.86,0.4,0.26,,,Unknown,8,8,True,True
+2026-03-11 03:37:04,runpod,RTX_A6000,NVIDIA RTX A6000,48,0.33,0.49,0.25,0.33,,,Unknown,8,10,True,True
