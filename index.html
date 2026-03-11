@@ -6,229 +6,197 @@
   <title>The Compute Brief — GPU Market Intel</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-primary: #0f0f0f;
-      --bg-secondary: #1a1a1a;
-      --bg-hover: #2a2a2a;
-      --accent: #c8ff00;
-      --teal: #00e0c0;
-      --text-primary: #f0ede8;
-      --text-secondary: #999999;
-      --text-muted: #666666;
-      --border: #333333;
-      --danger: #ff4444;
-      --font-display: 'DM Serif Display', Georgia, serif;
-      --font-body: 'IBM Plex Sans', -apple-system, sans-serif;
-      --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+      --bg:#0f0f0f; --bg2:#1a1a1a; --bg3:#222; --hover:#2a2a2a;
+      --accent:#c8ff00; --teal:#00e0c0; --orange:#ff9f43; --pink:#fd79a8;
+      --text:#f0ede8; --text2:#999; --text3:#666; --border:#333;
+      --red:#ff4444;
+      --fd:'DM Serif Display',Georgia,serif;
+      --fb:'IBM Plex Sans',-apple-system,sans-serif;
+      --fm:'IBM Plex Mono','Courier New',monospace;
     }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: var(--bg-primary); color: var(--text-primary);
-      font-family: var(--font-body); -webkit-font-smoothing: antialiased;
-    }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: var(--bg-primary); }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-    @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .app { max-width: 1400px; margin: 0 auto; padding: 0 24px 60px; }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:var(--bg);color:var(--text);font-family:var(--fb);-webkit-font-smoothing:antialiased}
+    ::-webkit-scrollbar{width:6px} ::-webkit-scrollbar-track{background:var(--bg)} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .app{max-width:1400px;margin:0 auto;padding:0 24px 60px}
 
     /* Header */
-    .header { padding: 32px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 32px; animation: fadeUp 0.5s ease-out; }
-    .header-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
-    .header h1 { font-family: var(--font-display); font-size: 32px; font-weight: 400; }
-    .header-badge {
-      font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
-      color: var(--accent); background: rgba(200,255,0,0.1);
-      padding: 4px 10px; border-radius: 3px; border: 1px solid rgba(200,255,0,0.2);
-    }
-    .header-sub { font-size: 14px; color: var(--text-secondary); margin-top: 6px; }
-    .live-dot { display:inline-block; width:6px; height:6px; background:var(--accent); border-radius:50%; margin-right:6px; animation:pulse 2s infinite; }
+    .hdr{padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:32px;animation:fadeUp .5s ease-out}
+    .hdr-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px}
+    .hdr h1{font-family:var(--fd);font-size:32px;font-weight:400}
+    .badge{font-family:var(--fm);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);background:rgba(200,255,0,.1);padding:4px 10px;border-radius:3px;border:1px solid rgba(200,255,0,.2)}
+    .hdr-sub{font-size:14px;color:var(--text2);margin-top:6px}
+    .dot-pulse{display:inline-block;width:6px;height:6px;background:var(--accent);border-radius:50%;margin-right:6px;animation:pulse 2s infinite}
+
+    /* Provider legend */
+    .providers{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px;font-family:var(--fm);font-size:11px;color:var(--text2)}
+    .prov{display:flex;align-items:center;gap:5px}
+    .prov-dot{width:10px;height:10px;border-radius:2px}
 
     /* Filters */
-    .filters { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:28px; align-items:flex-end; animation: fadeUp 0.5s ease-out 0.1s both; }
-    .filter-group { display:flex; flex-direction:column; gap:4px; }
-    .filter-label { font-family:var(--font-mono); font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-muted); }
-    select {
-      background:var(--bg-secondary); color:var(--text-primary);
-      border:1px solid var(--border); border-radius:4px;
-      padding:8px 30px 8px 12px; font-family:var(--font-body); font-size:13px;
-      cursor:pointer; min-width:160px; appearance:none;
-      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-      background-repeat:no-repeat; background-position:right 10px center;
-    }
-    select:hover { border-color:var(--text-muted); }
-    select:focus { outline:none; border-color:var(--accent); }
+    .filters{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:28px;align-items:flex-end;animation:fadeUp .5s ease-out .1s both}
+    .fg{display:flex;flex-direction:column;gap:4px}
+    .fl{font-family:var(--fm);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3)}
+    select{background:var(--bg2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:8px 30px 8px 12px;font-family:var(--fb);font-size:13px;cursor:pointer;min-width:160px;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+    select:hover{border-color:var(--text3)} select:focus{outline:none;border-color:var(--accent)}
+    .chips{display:flex;gap:6px;flex-wrap:wrap;padding-top:14px}
+    .chip{font-family:var(--fm);font-size:11px;padding:6px 12px;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:var(--bg2);color:var(--text2);transition:all .15s;user-select:none}
+    .chip:hover{border-color:var(--text3);color:var(--text)}
+    .chip.on{background:var(--accent);color:#000;border-color:var(--accent);font-weight:500}
 
-    .chips { display:flex; gap:6px; flex-wrap:wrap; padding-top:14px; }
-    .chip {
-      font-family:var(--font-mono); font-size:11px; padding:6px 12px; border-radius:3px;
-      cursor:pointer; border:1px solid var(--border); background:var(--bg-secondary);
-      color:var(--text-secondary); transition:all 0.15s; user-select:none;
-    }
-    .chip:hover { border-color:var(--text-muted); color:var(--text-primary); }
-    .chip.active { background:var(--accent); color:#000; border-color:var(--accent); font-weight:500; }
+    /* Grid */
+    .grid{display:grid;gap:20px;margin-bottom:28px}
+    .g1{grid-template-columns:1fr} .g3{grid-template-columns:1fr 1fr 1fr} .g2{grid-template-columns:1fr 1fr}
+    @media(max-width:900px){.g2,.g3{grid-template-columns:1fr}}
 
-    /* Grid & Cards */
-    .grid { display:grid; gap:20px; margin-bottom:28px; }
-    .g1 { grid-template-columns:1fr; }
-    .g3 { grid-template-columns:1fr 1fr 1fr; }
-    @media(max-width:900px) { .g3{grid-template-columns:1fr;} }
+    .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:20px;transition:border-color .2s;animation:fadeUp .5s ease-out .2s both}
+    .card:hover{border-color:#444}
+    .card-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+    .card-t{font-family:var(--fm);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3)}
+    .card-b{font-family:var(--fm);font-size:10px;color:var(--accent)}
 
-    .card {
-      background:var(--bg-secondary); border:1px solid var(--border);
-      border-radius:8px; padding:20px; transition:border-color 0.2s;
-      animation: fadeUp 0.5s ease-out 0.2s both;
-    }
-    .card:hover { border-color:#444; }
-    .card-hdr { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
-    .card-title { font-family:var(--font-mono); font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); }
-    .card-badge { font-family:var(--font-mono); font-size:10px; color:var(--accent); }
+    .sv{font-family:var(--fd);font-size:28px;color:var(--text);line-height:1.1}
+    .sl{font-size:12px;color:var(--text2);margin-top:2px}
 
-    .stat-val { font-family:var(--font-display); font-size:28px; color:var(--text-primary); line-height:1.1; }
-    .stat-label { font-size:12px; color:var(--text-secondary); margin-top:2px; }
+    /* GPU Cards */
+    .gpu-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color .2s}
+    .gpu-card:hover{border-color:#444}
+    .gpu-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+    .gpu-name{font-family:var(--fd);font-size:22px}
+    .gpu-tag{font-family:var(--fm);font-size:10px;letter-spacing:1px;padding:3px 8px;border-radius:3px;border:1px solid var(--border);color:var(--text2)}
+    .gpu-body{padding:20px}
+    .gpu-prices{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+    .gpu-prov{background:var(--bg);border-radius:6px;padding:12px;border:1px solid rgba(51,51,51,.5)}
+    .gpu-prov-name{font-family:var(--fm);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+    .gpu-prov-price{font-family:var(--fm);font-size:20px;font-weight:500}
+    .gpu-prov-detail{font-size:11px;color:var(--text3);margin-top:4px}
+    .gpu-prov-na{color:var(--text3);font-style:italic;font-size:13px}
+    .gpu-chart{height:250px;margin-top:12px}
 
-    /* Tables */
-    .table-wrap { overflow-x:auto; }
-    table { width:100%; border-collapse:collapse; font-size:13px; }
-    th {
-      font-family:var(--font-mono); font-size:10px; letter-spacing:1.5px;
-      text-transform:uppercase; color:var(--text-muted); text-align:left;
-      padding:8px 12px; border-bottom:1px solid var(--border);
-      white-space:nowrap; cursor:pointer; user-select:none;
-    }
-    th:hover { color:var(--text-secondary); }
-    td { padding:10px 12px; border-bottom:1px solid rgba(51,51,51,0.5); white-space:nowrap; }
-    tr:hover td { background:var(--bg-hover); }
-    .m { font-family:var(--font-mono); }
-    .p { color:var(--accent); font-weight:500; }
-    .stock-high { color:var(--accent); }
-    .stock-med { color:#ffaa00; }
-    .stock-low { color:var(--danger); }
-    .stock-na { color:var(--text-muted); }
+    /* Table */
+    .tw{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th{font-family:var(--fm);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+    th:hover{color:var(--text2)}
+    td{padding:10px 12px;border-bottom:1px solid rgba(51,51,51,.5);white-space:nowrap}
+    tr:hover td{background:var(--hover)}
+    .m{font-family:var(--fm)} .p{color:var(--accent);font-weight:500}
+    .avail{color:var(--accent)} .unavail{color:var(--red)} .limited{color:#ffaa00}
 
-    .chart-box { position:relative; height:360px; }
-
-    .loading { display:flex; flex-direction:column; align-items:center; padding:80px 20px; color:var(--text-muted); }
-    .spinner { width:32px; height:32px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; margin-bottom:12px; }
-
-    .footer { margin-top:48px; padding-top:20px; border-top:1px solid var(--border); font-size:12px; color:var(--text-muted); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
-
-    .dot { display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:8px; vertical-align:middle; }
+    .chart-box{position:relative;height:360px}
+    .loading{display:flex;flex-direction:column;align-items:center;padding:80px 20px;color:var(--text3)}
+    .spinner{width:32px;height:32px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
+    .footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--border);font-size:12px;color:var(--text3);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
   </style>
 </head>
 <body>
-<div class="app" id="app">
-  <div class="loading" id="loading">
-    <div class="spinner"></div>
-    <div>Loading market data...</div>
-  </div>
-</div>
+<div class="app" id="app"><div class="loading"><div class="spinner"></div><div>Loading market data...</div></div></div>
 
 <script>
-// ── GPU color map ────────────────────────────────────────────
-const GPU_COLORS = {
-  'H100':'#c8ff00','H100_SXM':'#a8e600','H200':'#00e0c0',
-  'A100_SXM4':'#ff6b6b','A100_PCIE':'#ff9f43','A100X':'#ff7979',
-  'L40S':'#a29bfe','L40':'#6c5ce7',
-  'RTX_4090':'#fd79a8','RTX_A6000':'#00b894','A6000':'#00cec9',
+// ── Provider config ──────────────────────────────────────────
+const PROVIDERS = {
+  'Vast.ai':    { color: '#c8ff00', short: 'VAST' },
+  'RunPod':     { color: '#00e0c0', short: 'RPOD' },
+  'Lambda':     { color: '#ff9f43', short: 'LAMB' },
+  'TensorDock': { color: '#fd79a8', short: 'TDCK' },
 };
-function gpuColor(name) {
-  const u = (name||'').toUpperCase();
-  for (const [k,c] of Object.entries(GPU_COLORS)) { if (u.includes(k)) return c; }
-  return '#888';
-}
+const provColor = p => PROVIDERS[p]?.color || '#888';
 
 // ── State ────────────────────────────────────────────────────
-let vastData = [], runpodData = [];
-let selectedGpus = new Set();
-let platform = 'all', timeRange = 'all';
-let sortCol = 'gpu_name', sortDir = 'asc';
-let vastChart = null, runpodChart = null;
+let allData = [];
+let selectedGpu = 'all'; // 'all' or a specific GPU name
+let timeRange = '7d';
+let sortCol = 'gpu', sortDir = 'asc';
+let charts = {};
 
-// ── CSV loader ───────────────────────────────────────────────
 function loadCSV(url) {
-  return new Promise((resolve, reject) => {
-    Papa.parse(url, {
-      download: true, header: true, skipEmptyLines: true, dynamicTyping: true,
-      complete: r => resolve(r.data), error: e => reject(e),
-    });
+  return new Promise((res, rej) => {
+    Papa.parse(url, { download:true, header:true, skipEmptyLines:true, dynamicTyping:true,
+      complete: r => res(r.data), error: e => rej(e) });
   });
 }
 
 // ── Filtering ────────────────────────────────────────────────
-function getTimeFilterDate() {
-  const now = Date.now();
+function cutoffDate() {
   const ms = { '24h':864e5, '7d':6048e5, '30d':2592e6, 'all':Infinity };
-  return new Date(now - (ms[timeRange] || Infinity));
+  return new Date(Date.now() - (ms[timeRange]||Infinity));
 }
 
-function filteredVast() {
-  if (platform === 'runpod') return [];
-  const cutoff = getTimeFilterDate();
-  return vastData.filter(r =>
-    selectedGpus.has(r.gpu_name) && new Date(r.timestamp) >= cutoff
-  );
+function filtered() {
+  const cutoff = cutoffDate();
+  return allData.filter(r => {
+    if (selectedGpu !== 'all' && r.gpu !== selectedGpu) return false;
+    return new Date(r.timestamp) >= cutoff;
+  });
 }
 
-function filteredRunpod() {
-  if (platform === 'vast') return [];
-  const cutoff = getTimeFilterDate();
-  return runpodData.filter(r =>
-    selectedGpus.has(r.gpu_name) && new Date(r.timestamp) >= cutoff
-  );
+// Latest per GPU+Provider
+function latestSnapshot(data) {
+  const m = {};
+  data.forEach(r => {
+    const key = r.gpu + '|' + r.provider;
+    if (!m[key] || r.timestamp > m[key].timestamp) m[key] = r;
+  });
+  return Object.values(m);
 }
 
-function latestByGpu(rows, key) {
+// Group by GPU
+function groupByGpu(rows) {
   const m = {};
   rows.forEach(r => {
-    if (!m[r.gpu_name] || r.timestamp > m[r.gpu_name].timestamp) m[r.gpu_name] = r;
+    if (!m[r.gpu]) m[r.gpu] = {};
+    m[r.gpu][r.provider] = r;
   });
   return m;
 }
 
 // ── Render ───────────────────────────────────────────────────
 function render() {
-  const fv = filteredVast(), fr = filteredRunpod();
-  const latV = latestByGpu(fv), latR = latestByGpu(fr);
-  const allGpus = [...new Set([...vastData.map(r=>r.gpu_name), ...runpodData.map(r=>r.gpu_name)])].filter(Boolean).sort();
-  const totalOffers = Object.values(latV).reduce((s,r) => s + (r.num_offers||0), 0);
-  const allTs = [...vastData,...runpodData].map(r=>r.timestamp).filter(Boolean).sort();
-  const lastUpdated = allTs.length ? allTs[allTs.length-1] : '—';
-  const dataPoints = vastData.length + runpodData.length;
+  const data = filtered();
+  const latest = latestSnapshot(data);
+  const byGpu = groupByGpu(latest);
+  const allGpus = [...new Set(allData.map(r => r.gpu))].filter(Boolean).sort();
+  const allProviders = [...new Set(allData.map(r => r.provider))].filter(Boolean).sort();
+  const dataPoints = allData.length;
+  const lastTs = allData.map(r=>r.timestamp).filter(Boolean).sort().pop() || '—';
+
+  // Destroy existing charts
+  Object.values(charts).forEach(c => c.destroy());
+  charts = {};
 
   let html = `
-    <div class="header">
-      <div class="header-top">
+    <div class="hdr">
+      <div class="hdr-top">
         <div>
           <h1>The Compute Brief</h1>
-          <div class="header-sub">
-            GPU Market Intelligence Dashboard &middot;
-            <span style="color:var(--teal)"><span class="live-dot"></span>${dataPoints.toLocaleString()} data points</span>
+          <div class="hdr-sub">GPU Market Intelligence &mdash; by SKU &middot;
+            <span style="color:var(--teal)"><span class="dot-pulse"></span>${dataPoints.toLocaleString()} data points</span>
           </div>
         </div>
-        <div class="header-badge">Module 1 &mdash; Pricing &amp; Availability</div>
+        <div class="badge">Module 1 &mdash; Multi-Provider</div>
       </div>
     </div>
 
+    <div class="providers">
+      ${allProviders.map(p => `<div class="prov"><div class="prov-dot" style="background:${provColor(p)}"></div>${p}</div>`).join('')}
+    </div>
+
     <div class="filters">
-      <div class="filter-group">
-        <span class="filter-label">Platform</span>
-        <select id="sel-platform" onchange="platform=this.value;render()">
-          <option value="all"${platform==='all'?' selected':''}>All Platforms</option>
-          <option value="vast"${platform==='vast'?' selected':''}>Vast.ai Only</option>
-          <option value="runpod"${platform==='runpod'?' selected':''}>RunPod Only</option>
+      <div class="fg">
+        <span class="fl">GPU Model</span>
+        <select onchange="selectedGpu=this.value;render()">
+          <option value="all"${selectedGpu==='all'?' selected':''}>All GPUs</option>
+          ${allGpus.map(g => `<option value="${g}"${selectedGpu===g?' selected':''}>${g}</option>`).join('')}
         </select>
       </div>
-      <div class="filter-group">
-        <span class="filter-label">Time Range</span>
-        <select id="sel-time" onchange="timeRange=this.value;render()">
+      <div class="fg">
+        <span class="fl">Time Range</span>
+        <select onchange="timeRange=this.value;render()">
           <option value="24h"${timeRange==='24h'?' selected':''}>Last 24 Hours</option>
           <option value="7d"${timeRange==='7d'?' selected':''}>Last 7 Days</option>
           <option value="30d"${timeRange==='30d'?' selected':''}>Last 30 Days</option>
@@ -236,247 +204,203 @@ function render() {
         </select>
       </div>
       <div class="chips">
-        <span class="chip" style="border-color:var(--teal);color:var(--teal)" onclick="allGpusOn()">All</span>
-        <span class="chip" onclick="allGpusOff()">None</span>
-        ${allGpus.map(g => `<span class="chip${selectedGpus.has(g)?' active':''}"
-          onclick="toggleGpu('${g}')"
-          ${selectedGpus.has(g)?`style="background:${gpuColor(g)};border-color:${gpuColor(g)}"`:''}
-        >${g.replace(/_/g,' ')}</span>`).join('')}
+        <span class="chip${selectedGpu==='all'?' on':''}" onclick="selectedGpu='all';render()" style="${selectedGpu==='all'?'background:var(--accent);color:#000;border-color:var(--accent)':'border-color:var(--teal);color:var(--teal)'}">All GPUs</span>
+        ${allGpus.map(g => `<span class="chip${selectedGpu===g?' on':''}" onclick="selectedGpu='${g}';render()">${g}</span>`).join('')}
       </div>
     </div>
 
+    <!-- Summary stats -->
     <div class="grid g3">
-      <div class="card"><div class="stat-val">${allGpus.filter(g=>selectedGpus.has(g)).length}</div><div class="stat-label">GPU SKUs Selected</div></div>
-      <div class="card"><div class="stat-val">${totalOffers.toLocaleString()}</div><div class="stat-label">Active Vast.ai Offers</div></div>
-      <div class="card"><div class="stat-val" style="font-size:18px">${(lastUpdated||'').slice(0,16)||'—'}</div><div class="stat-label">Last Scraped (UTC)</div></div>
+      <div class="card"><div class="sv">${Object.keys(byGpu).length}</div><div class="sl">GPU SKUs with Data</div></div>
+      <div class="card"><div class="sv">${allProviders.length}</div><div class="sl">Providers Tracked</div></div>
+      <div class="card"><div class="sv" style="font-size:18px">${(lastTs||'').slice(0,16)}</div><div class="sl">Last Scraped (UTC)</div></div>
     </div>`;
 
-  // Vast chart
-  if (platform !== 'runpod' && fv.length > 0) {
-    html += `<div class="grid g1"><div class="card">
-      <div class="card-hdr"><span class="card-title">Vast.ai &mdash; Median Spot Price Over Time ($/GPU-hr)</span><span class="card-badge">${[...new Set(fv.map(r=>r.timestamp?.slice(0,16)))].length} snapshots</span></div>
-      <div class="chart-box"><canvas id="vast-chart"></canvas></div>
-    </div></div>`;
-  }
+  // ── GPU cards ──────────────────────────────────────────────
+  const gpuNames = Object.keys(byGpu).sort();
+  gpuNames.forEach(gpu => {
+    const provData = byGpu[gpu];
+    const provList = Object.keys(provData).sort();
+    const prices = provList.map(p => provData[p].min_price_hr).filter(v => v > 0);
+    const cheapest = prices.length ? Math.min(...prices) : null;
 
-  // RunPod chart
-  if (platform !== 'vast' && fr.length > 0) {
-    html += `<div class="grid g1"><div class="card">
-      <div class="card-hdr"><span class="card-title">RunPod &mdash; Community Price Over Time ($/hr)</span><span class="card-badge">${[...new Set(fr.map(r=>r.timestamp?.slice(0,16)))].length} snapshots</span></div>
-      <div class="chart-box"><canvas id="runpod-chart"></canvas></div>
-    </div></div>`;
-  }
+    html += `<div class="gpu-card" style="margin-bottom:20px">
+      <div class="gpu-head">
+        <div class="gpu-name">${gpu}</div>
+        <div class="gpu-tag">${provList.length} provider${provList.length>1?'s':''}</div>
+      </div>
+      <div class="gpu-body">
+        <div class="gpu-prices">
+          ${Object.keys(PROVIDERS).map(prov => {
+            const d = provData[prov];
+            if (!d) return `<div class="gpu-prov">
+              <div class="gpu-prov-name"><div class="prov-dot" style="background:${provColor(prov)}"></div>${prov}</div>
+              <div class="gpu-prov-na">No data</div>
+            </div>`;
 
-  // Vast table
-  const vastRows = Object.values(latV).sort((a,b) => {
-    let va=a[sortCol], vb=b[sortCol];
-    if (typeof va==='string') va=va.toLowerCase();
-    if (typeof vb==='string') vb=vb.toLowerCase();
-    return sortDir==='asc' ? (va<vb?-1:va>vb?1:0) : (va>vb?-1:va<vb?1:0);
+            const price = d.min_price_hr || d.median_price_hr || d.on_demand_hr;
+            const isCheapest = price && price === cheapest && prices.length > 1;
+            const spotPrice = d.spot_price_hr;
+            const avail = d.availability || '';
+            const availCls = avail.toLowerCase().includes('avail') || avail.toLowerCase().includes('high') ? 'avail' :
+                             avail.toLowerCase().includes('out') || avail.toLowerCase().includes('unavail') ? 'unavail' : 'limited';
+
+            return `<div class="gpu-prov" ${isCheapest?'style="border-color:var(--accent)"':''}>
+              <div class="gpu-prov-name"><div class="prov-dot" style="background:${provColor(prov)}"></div>${prov} ${isCheapest?'<span style="color:var(--accent);font-size:9px">LOWEST</span>':''}</div>
+              <div class="gpu-prov-price" style="color:${provColor(prov)}">${price ? '$'+Number(price).toFixed(2) : '—'}<span style="font-size:11px;color:var(--text3)">/hr</span></div>
+              ${spotPrice ? `<div class="gpu-prov-detail">Spot: $${Number(spotPrice).toFixed(2)}/hr</div>` : ''}
+              ${d.num_offers ? `<div class="gpu-prov-detail">${d.num_offers} offer${d.num_offers>1?'s':''}</div>` : ''}
+              <div class="gpu-prov-detail ${availCls}">${avail}</div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div class="gpu-chart"><canvas id="chart-${gpu.replace(/\s+/g,'_')}"></canvas></div>
+      </div>
+    </div>`;
   });
 
-  if (platform !== 'runpod' && vastRows.length > 0) {
-    const arrow = c => sortCol===c ? (sortDir==='asc'?'↑':'↓') : '';
-    html += `<div class="grid g1"><div class="card">
-      <div class="card-hdr"><span class="card-title">Vast.ai &mdash; Current Spot Pricing</span><span class="card-badge">${vastRows.length} GPU types</span></div>
-      <div class="table-wrap"><table>
-        <thead><tr>
-          <th onclick="doSort('gpu_name')">GPU ${arrow('gpu_name')}</th>
-          <th onclick="doSort('num_offers')">Offers ${arrow('num_offers')}</th>
-          <th onclick="doSort('min_price_hr')">Min $/hr ${arrow('min_price_hr')}</th>
-          <th onclick="doSort('median_price_hr')">Median $/hr ${arrow('median_price_hr')}</th>
-          <th onclick="doSort('max_price_hr')">Max $/hr ${arrow('max_price_hr')}</th>
-          <th onclick="doSort('avg_reliability')">Reliability ${arrow('avg_reliability')}</th>
-          <th onclick="doSort('datacenter_count')">DC Offers ${arrow('datacenter_count')}</th>
-          <th>Top Regions</th>
-        </tr></thead>
-        <tbody>${vastRows.map(r => `<tr>
-          <td style="font-weight:600"><span class="dot" style="background:${gpuColor(r.gpu_name)}"></span>${(r.gpu_name||'').replace(/_/g,' ')}</td>
-          <td class="m">${r.num_offers||0}</td>
-          <td class="m p">$${(r.min_price_hr||0).toFixed(2)}</td>
-          <td class="m p">$${(r.median_price_hr||0).toFixed(2)}</td>
-          <td class="m">$${(r.max_price_hr||0).toFixed(2)}</td>
-          <td class="m">${((r.avg_reliability||0)*100).toFixed(1)}%</td>
-          <td class="m">${r.datacenter_count||0}</td>
-          <td style="font-size:11px;color:var(--text-secondary);max-width:200px;overflow:hidden;text-overflow:ellipsis">${r.top_regions||''}</td>
-        </tr>`).join('')}</tbody>
-      </table></div>
-    </div></div>`;
-  }
+  // ── Comparison table ───────────────────────────────────────
+  const tableRows = [];
+  gpuNames.forEach(gpu => {
+    const provData = byGpu[gpu];
+    Object.keys(PROVIDERS).forEach(prov => {
+      const d = provData[prov];
+      if (!d) return;
+      tableRows.push({ gpu, provider: prov, ...d });
+    });
+  });
 
-  // RunPod table
-  const rpRows = Object.values(latR).sort((a,b) => (a.gpu_name||'').localeCompare(b.gpu_name||''));
-  if (platform !== 'vast' && rpRows.length > 0) {
-    html += `<div class="grid g1"><div class="card">
-      <div class="card-hdr"><span class="card-title">RunPod &mdash; Current Pricing</span><span class="card-badge">${rpRows.length} GPU types</span></div>
-      <div class="table-wrap"><table>
-        <thead><tr><th>GPU</th><th>VRAM</th><th>Community $/hr</th><th>Secure $/hr</th><th>Spot $/hr</th><th>Min Bid</th><th>Stock</th><th>Max GPUs</th></tr></thead>
-        <tbody>${rpRows.map(r => {
-          const s = String(r.stock_status||'').toLowerCase();
-          const sc = s.includes('high')||s==='available' ? 'stock-high' : s.includes('medium')||s.includes('low') ? 'stock-med' : s.includes('out')||s.includes('none') ? 'stock-low' : 'stock-na';
-          return `<tr>
-            <td style="font-weight:600"><span class="dot" style="background:${gpuColor(r.gpu_name)}"></span>${(r.gpu_name||'').replace(/_/g,' ')}</td>
-            <td class="m">${r.vram_gb ? r.vram_gb+'GB' : '—'}</td>
-            <td class="m p">${r.community_price_hr ? '$'+Number(r.community_price_hr).toFixed(2) : '—'}</td>
-            <td class="m">${r.secure_price_hr ? '$'+Number(r.secure_price_hr).toFixed(2) : '—'}</td>
-            <td class="m" style="color:var(--teal)">${r.community_spot_hr ? '$'+Number(r.community_spot_hr).toFixed(2) : '—'}</td>
-            <td class="m">${r.min_bid_price ? '$'+Number(r.min_bid_price).toFixed(2) : '—'}</td>
-            <td class="m ${sc}">${r.stock_status||'—'}</td>
-            <td class="m">${r.max_gpus_community||'—'}</td>
-          </tr>`;
-        }).join('')}</tbody>
-      </table></div>
-    </div></div>`;
-  }
+  tableRows.sort((a,b) => {
+    let va = a[sortCol], vb = b[sortCol];
+    if (typeof va==='string') va=va.toLowerCase();
+    if (typeof vb==='string') vb=vb.toLowerCase();
+    return sortDir==='asc'?(va<vb?-1:va>vb?1:0):(va>vb?-1:va<vb?1:0);
+  });
+
+  const arrow = c => sortCol===c?(sortDir==='asc'?'↑':'↓'):'';
+
+  html += `<div class="card" style="margin-top:20px">
+    <div class="card-h"><span class="card-t">Full Comparison Table</span><span class="card-b">${tableRows.length} entries</span></div>
+    <div class="tw"><table>
+      <thead><tr>
+        <th onclick="doSort('gpu')">GPU ${arrow('gpu')}</th>
+        <th onclick="doSort('provider')">Provider ${arrow('provider')}</th>
+        <th onclick="doSort('min_price_hr')">Min $/hr ${arrow('min_price_hr')}</th>
+        <th onclick="doSort('median_price_hr')">Median $/hr ${arrow('median_price_hr')}</th>
+        <th onclick="doSort('spot_price_hr')">Spot $/hr ${arrow('spot_price_hr')}</th>
+        <th onclick="doSort('num_offers')">Offers ${arrow('num_offers')}</th>
+        <th onclick="doSort('availability')">Availability ${arrow('availability')}</th>
+        <th>Regions</th>
+      </tr></thead>
+      <tbody>${tableRows.map(r => {
+        const ac = (r.availability||'').toLowerCase();
+        const cls = ac.includes('avail')||ac.includes('high')?'avail':ac.includes('out')||ac.includes('unavail')?'unavail':'limited';
+        return `<tr>
+          <td style="font-weight:600">${r.gpu}</td>
+          <td><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${provColor(r.provider)};margin-right:6px;vertical-align:middle"></span>${r.provider}</td>
+          <td class="m p">${r.min_price_hr?'$'+Number(r.min_price_hr).toFixed(2):'—'}</td>
+          <td class="m">${r.median_price_hr?'$'+Number(r.median_price_hr).toFixed(2):'—'}</td>
+          <td class="m" style="color:var(--teal)">${r.spot_price_hr?'$'+Number(r.spot_price_hr).toFixed(2):'—'}</td>
+          <td class="m">${r.num_offers||'—'}</td>
+          <td class="m ${cls}">${r.availability||'—'}</td>
+          <td style="font-size:11px;color:var(--text3);max-width:180px;overflow:hidden;text-overflow:ellipsis">${r.top_regions||''}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>
+  </div>`;
 
   html += `<div class="footer">
     <div>The Compute Brief &mdash; GPU Market Intelligence</div>
-    <div style="font-family:var(--font-mono);font-size:11px">Sources: Vast.ai &middot; RunPod &middot; Updated hourly via GitHub Actions</div>
+    <div style="font-family:var(--fm);font-size:11px">Sources: Vast.ai &middot; RunPod &middot; Lambda &middot; TensorDock &middot; Updated hourly</div>
   </div>`;
 
   document.getElementById('app').innerHTML = html;
 
-  // Build charts after DOM update
+  // Build per-GPU charts
   requestAnimationFrame(() => {
-    buildVastChart(fv);
-    buildRunpodChart(fr);
+    gpuNames.forEach(gpu => buildGpuChart(gpu, data));
   });
 }
 
-// ── Charts ───────────────────────────────────────────────────
-function buildVastChart(data) {
-  const canvas = document.getElementById('vast-chart');
-  if (!canvas || !data.length) return;
-  if (vastChart) vastChart.destroy();
+// ── Per-GPU chart (providers as separate lines) ──────────────
+function buildGpuChart(gpu, data) {
+  const id = 'chart-' + gpu.replace(/\s+/g, '_');
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
 
-  // Group by timestamp, then by GPU
+  const gpuData = data.filter(r => r.gpu === gpu);
+  const providers = [...new Set(gpuData.map(r => r.provider))].sort();
+
+  // Group by timestamp
   const byTime = {};
-  data.forEach(r => {
+  gpuData.forEach(r => {
     const t = r.timestamp?.slice(0,16);
     if (!t) return;
     if (!byTime[t]) byTime[t] = {};
-    byTime[t][r.gpu_name] = r.median_price_hr;
+    byTime[t][r.provider] = r.min_price_hr || r.median_price_hr || r.on_demand_hr;
   });
   const times = Object.keys(byTime).sort();
-  const gpus = [...new Set(data.map(r=>r.gpu_name))].sort();
+  if (times.length === 0) return;
 
-  vastChart = new Chart(canvas, {
+  charts[id] = new Chart(canvas, {
     type: 'line',
     data: {
       labels: times.map(t => t.slice(5)),
-      datasets: gpus.map(g => ({
-        label: g.replace(/_/g,' '),
-        data: times.map(t => byTime[t]?.[g] ?? null),
-        borderColor: gpuColor(g),
-        backgroundColor: gpuColor(g) + '22',
-        borderWidth: 2, pointRadius: times.length < 30 ? 3 : 0,
+      datasets: providers.map(p => ({
+        label: p,
+        data: times.map(t => byTime[t]?.[p] != null ? Number(byTime[t][p]) : null),
+        borderColor: provColor(p),
+        backgroundColor: provColor(p) + '22',
+        borderWidth: 2, pointRadius: times.length < 40 ? 3 : 0,
         tension: 0.3, spanGaps: true,
       })),
     },
-    options: chartOpts('$/GPU-hr'),
-  });
-}
-
-function buildRunpodChart(data) {
-  const canvas = document.getElementById('runpod-chart');
-  if (!canvas || !data.length) return;
-  if (runpodChart) runpodChart.destroy();
-
-  const byTime = {};
-  data.forEach(r => {
-    const t = r.timestamp?.slice(0,16);
-    if (!t) return;
-    if (!byTime[t]) byTime[t] = {};
-    byTime[t][r.gpu_name] = r.community_price_hr || r.on_demand_price || null;
-  });
-  const times = Object.keys(byTime).sort();
-  const gpus = [...new Set(data.map(r=>r.gpu_name))].sort();
-
-  runpodChart = new Chart(canvas, {
-    type: 'line',
-    data: {
-      labels: times.map(t => t.slice(5)),
-      datasets: gpus.map(g => ({
-        label: g.replace(/_/g,' '),
-        data: times.map(t => byTime[t]?.[g] != null ? Number(byTime[t][g]) : null),
-        borderColor: gpuColor(g),
-        backgroundColor: gpuColor(g) + '22',
-        borderWidth: 2, pointRadius: times.length < 30 ? 3 : 0,
-        tension: 0.3, spanGaps: true,
-      })),
-    },
-    options: chartOpts('$/hr'),
-  });
-}
-
-function chartOpts(yLabel) {
-  return {
-    responsive: true, maintainAspectRatio: false,
-    interaction: { mode: 'index', intersect: false },
-    plugins: {
-      legend: { labels: { color: '#999', font: { family: "'IBM Plex Mono',monospace", size: 11 }, boxWidth: 12, padding: 16 } },
-      tooltip: {
-        backgroundColor: '#1a1a1a', borderColor: '#333', borderWidth: 1,
-        titleFont: { family: "'IBM Plex Mono',monospace", size: 11 }, titleColor: '#999',
-        bodyFont: { family: "'IBM Plex Mono',monospace", size: 12 }, bodyColor: '#eee',
-        callbacks: { label: ctx => ` ${ctx.dataset.label}: $${ctx.parsed.y?.toFixed(2) || '—'}` },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{labels:{color:'#999',font:{family:"'IBM Plex Mono',monospace",size:11},boxWidth:12,padding:16}},
+        tooltip:{
+          backgroundColor:'#1a1a1a',borderColor:'#333',borderWidth:1,
+          titleFont:{family:"'IBM Plex Mono',monospace",size:11},titleColor:'#999',
+          bodyFont:{family:"'IBM Plex Mono',monospace",size:12},bodyColor:'#eee',
+          callbacks:{label:ctx=>' '+ctx.dataset.label+': $'+(ctx.parsed.y?.toFixed(2)||'—')},
+        },
+      },
+      scales:{
+        x:{ticks:{color:'#666',font:{family:"'IBM Plex Mono',monospace",size:10},maxRotation:45},grid:{color:'#2a2a2a'}},
+        y:{ticks:{color:'#666',font:{family:"'IBM Plex Mono',monospace",size:10},callback:v=>'$'+v},grid:{color:'#2a2a2a'}},
       },
     },
-    scales: {
-      x: { ticks: { color: '#666', font: { family: "'IBM Plex Mono',monospace", size: 10 }, maxRotation: 45 }, grid: { color: '#2a2a2a' } },
-      y: { ticks: { color: '#666', font: { family: "'IBM Plex Mono',monospace", size: 10 }, callback: v => '$'+v }, grid: { color: '#2a2a2a' } },
-    },
-  };
+  });
 }
 
 // ── Interactions ──────────────────────────────────────────────
-function toggleGpu(name) {
-  if (selectedGpus.has(name)) selectedGpus.delete(name); else selectedGpus.add(name);
-  render();
-}
-function allGpusOn() {
-  [...new Set([...vastData.map(r=>r.gpu_name),...runpodData.map(r=>r.gpu_name)])].filter(Boolean).forEach(g => selectedGpus.add(g));
-  render();
-}
-function allGpusOff() { selectedGpus.clear(); render(); }
 function doSort(col) {
-  if (sortCol === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
-  else { sortCol = col; sortDir = 'asc'; }
+  if (sortCol===col) sortDir=sortDir==='asc'?'desc':'asc';
+  else {sortCol=col;sortDir='asc';}
   render();
 }
 
 // ── Init ─────────────────────────────────────────────────────
 async function init() {
   try {
-    const [vast, runpod] = await Promise.all([
-      loadCSV('./data/vast_history.csv').catch(() => []),
-      loadCSV('./data/runpod_history.csv').catch(() => []),
-    ]);
-    vastData = vast || [];
-    runpodData = runpod || [];
-
-    // Select all GPUs by default
-    vastData.forEach(r => r.gpu_name && selectedGpus.add(r.gpu_name));
-    runpodData.forEach(r => r.gpu_name && selectedGpus.add(r.gpu_name));
-
-    if (!vastData.length && !runpodData.length) {
+    allData = await loadCSV('./data/gpu_pricing.csv').catch(() => []);
+    if (!allData.length) {
       document.getElementById('app').innerHTML = `
-        <div class="header"><h1>The Compute Brief</h1></div>
-        <div style="text-align:center;padding:60px 20px;color:var(--text-muted)">
+        <div class="hdr"><h1>The Compute Brief</h1></div>
+        <div style="text-align:center;padding:60px 20px;color:var(--text3)">
           <div style="font-size:40px;margin-bottom:12px">📡</div>
-          <div style="font-size:16px;color:var(--text-secondary);margin-bottom:8px">No data files found yet</div>
-          <div>Run the scraper first or trigger the GitHub Action manually.</div>
-          <code style="display:block;margin-top:8px;font-family:var(--font-mono);font-size:12px;color:var(--text-secondary)">python scraper/scrape.py</code>
+          <div style="font-size:16px;color:var(--text2);margin-bottom:8px">No data yet</div>
+          <div>Trigger the GitHub Action to run the first scrape.</div>
         </div>`;
       return;
     }
-
     render();
   } catch(e) {
-    document.getElementById('app').innerHTML = `<div style="padding:40px;color:var(--danger)">Error: ${e.message}</div>`;
+    document.getElementById('app').innerHTML='<div style="padding:40px;color:var(--red)">Error: '+e.message+'</div>';
   }
 }
-
 init();
 </script>
 </body>
