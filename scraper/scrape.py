@@ -32,16 +32,13 @@ OUTPUT_CSV = DATA_DIR / "gpu_pricing.csv"
 GPU_ALIASES = {
     "H100": ["H100", "H100_SXM", "H100_SXM5", "H100_PCIE", "H100 SXM", "H100 80GB SXM5", "H100 PCIe", "gpu_8x_h100_sxm5", "gpu_1x_h100_sxm5"],
     "H200": ["H200", "H200_SXM", "gpu_8x_h200"],
-    "A100 80GB": ["A100_SXM4", "A100_SXM", "A100 80GB SXM4", "A100 80GB SXM", "A100_80GB", "A100X", "gpu_8x_a100_80gb_sxm4", "gpu_1x_a100_80gb_sxm4"],
-    "A100 40GB": ["A100_PCIE", "A100 40GB", "A100_40GB", "A100 PCIe", "gpu_1x_a100_pcie_40gb"],
     "L40S": ["L40S", "gpu_8x_l40s"],
-    "L40": ["L40"],
-    "A10": ["A10", "gpu_1x_a10"],
-    "RTX 4090": ["RTX_4090", "RTX 4090", "GeForce RTX 4090"],
     "RTX A6000": ["RTX_A6000", "A6000", "RTX A6000"],
-    "RTX 3090": ["RTX_3090", "RTX 3090", "GeForce RTX 3090"],
     "GH200": ["GH200", "gpu_1x_gh200"],
     "B200": ["B200", "gpu_8x_b200"],
+    "B300": ["B300", "gpu_8x_b300"],
+    "GB200": ["GB200", "gpu_8x_Gb200"],
+    "GB300": ["GB300", "gpu_8x_gb300"],
 }
 
 def normalize_gpu(raw_name: str) -> str:
