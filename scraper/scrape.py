@@ -22,7 +22,6 @@ from pathlib import Path
 VAST_API_KEY = os.environ.get("VAST_API_KEY", "")
 RUNPOD_API_KEY = os.environ.get("RUNPOD_API_KEY", "")
 LAMBDA_API_KEY = os.environ.get("LAMBDA_API_KEY", "")
-TENSORDOCK_API_KEY = os.environ.get("TENSORDOCK_API_KEY", "")
 TENSORDOCK_API_TOKEN = os.environ.get("TENSORDOCK_API_TOKEN", "")
 
 DATA_DIR = Path(__file__).parent.parent / "data"
@@ -247,50 +246,52 @@ def scrape_lambda():
 # ── TensorDock ────────────────────────────────────────────────
 
 def scrape_tensordock():
-    if not TENSORDOCK_API_KEY or not TENSORDOCK_API_TOKEN:
-        print("⚠️  TENSORDOCK keys not set — skipping")
+    if not TENSORDOCK_API_TOKEN:
+        print("⚠️  TENSORDOCK_API_TOKEN not set — skipping")
         return []
 
-    url = "https://marketplace.tensordock.com/api/v0/client/deploy/hostnodes"
-    params = {"api_key": TENSORDOCK_API_KEY, "api_token": TENSORDOCK_API_TOKEN}
+    url = "https://management.arzaut.com/api/v2/hostnodes"
+    headers = {"Authorization": f"Bearer {TENSORDOCK_API_TOKEN}"}
 
     print("📡 TensorDock...")
     try:
-        resp = requests.get(url, params=params, timeout=30)
+        resp = requests.get(url, headers=headers, timeout=30)
         resp.raise_for_status()
         data = resp.json()
     except Exception as e:
         print(f"  ❌ {e}")
         return []
 
-    hostnodes = data.get("hostnodes", {})
+    hostnodes = data.get("data", {}).get("hostnodes", [])
     if not hostnodes:
         print("  ⚠️  No hostnodes")
         return []
 
-    # Group by GPU type
+    # Group by GPU type across all hostnodes
     groups = {}
-    for node_id, node in hostnodes.items():
-        specs = node.get("specs", {})
-        gpu_info = specs.get("gpu", {})
+    for node in hostnodes:
+        resources = node.get("available_resources", {})
         location = node.get("location", {})
-        region = location.get("country", "Unknown")
+        country = location.get("country", "Unknown")
+        city = location.get("city", "")
+        region = f"{city}, {country}" if city else country
 
-        for gpu_model, gpu_details in gpu_info.items():
-            if not is_tracked(gpu_model):
+        gpus = resources.get("gpus", [])
+        for gpu_info in gpus:
+            raw_name = gpu_info.get("displayName", gpu_info.get("v0Name", ""))
+            if not is_tracked(raw_name):
                 continue
-            canonical = normalize_gpu(gpu_model)
-            amount = gpu_details.get("amount", 0)
-            # TensorDock prices are per GPU per hour
-            price = gpu_details.get("price", 0)
-            if amount <= 0 or price <= 0:
+            canonical = normalize_gpu(raw_name)
+            price = gpu_info.get("price_per_hr", 0)
+            available = gpu_info.get("availableCount", 0)
+            if price <= 0:
                 continue
 
             if canonical not in groups:
                 groups[canonical] = {"prices": [], "regions": {}, "total_gpus": 0}
             groups[canonical]["prices"].append(price)
-            groups[canonical]["total_gpus"] += amount
-            groups[canonical]["regions"][region] = groups[canonical]["regions"].get(region, 0) + amount
+            groups[canonical]["total_gpus"] += available
+            groups[canonical]["regions"][region] = groups[canonical]["regions"].get(region, 0) + available
 
     rows = []
     for gpu, g in groups.items():
