@@ -1,0 +1,40 @@
+name: GPU Market Intel Scraper
+
+on:
+  schedule:
+    - cron: '15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run scraper
+        env:
+          VAST_API_KEY: ${{ secrets.VAST_API_KEY }}
+          RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
+        run: python scraper/scrape.py
+
+      - name: Commit and push data
+        run: |
+          git config user.name "gpu-intel-bot"
+          git config user.email "bot@gpu-intel.local"
+          git add data/
+          git diff --staged --quiet || git commit -m "📊 data: $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push
