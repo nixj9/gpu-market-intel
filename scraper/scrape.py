@@ -250,7 +250,7 @@ def scrape_tensordock():
         print("⚠️  TENSORDOCK_API_TOKEN not set — skipping")
         return []
 
-    url = "https://management.arzaut.com/api/v2/hostnodes"
+    url = "https://management.arzaut.com/api/v2/locations"
     headers = {"Authorization": f"Bearer {TENSORDOCK_API_TOKEN}"}
 
     print("📡 TensorDock...")
@@ -262,7 +262,7 @@ def scrape_tensordock():
         print(f"  ❌ {e}")
         return []
 
-    hostnodes = data.get("data", {}).get("hostnodes", [])
+    hostnodes = data.get("data", {}).get("locations", [])
     if not hostnodes:
         print("  ⚠️  No hostnodes")
         return []
@@ -276,14 +276,14 @@ def scrape_tensordock():
         city = location.get("city", "")
         region = f"{city}, {country}" if city else country
 
-        gpus = resources.get("gpus", [])
+        gpus = node.get("gpus", [])
         for gpu_info in gpus:
             raw_name = gpu_info.get("displayName", gpu_info.get("v0Name", ""))
             if not is_tracked(raw_name):
                 continue
             canonical = normalize_gpu(raw_name)
             price = gpu_info.get("price_per_hr", 0)
-            available = gpu_info.get("availableCount", 0)
+            available = gpu_info.get("max_count", 0)
             if price <= 0:
                 continue
 
